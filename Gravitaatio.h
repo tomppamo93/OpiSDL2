@@ -32,9 +32,11 @@ public:
 	static int Update(Gravitaatio*);
 	static Gravitaatio *CreateUniverse(int);
 	static int RenderUniverse(Gravitaatio *kappale);
+
+	static double SetRenderScale(double scale) { m_renderscale = scale; };
 private:
 	std::string m_name;
-	double m_mass;
+	double m_mass, m_rad;
 	double m_pos_x, m_pos_y;
 	double m_vel_x, m_vel_y;
 	SDL_Texture *m_planeetta;
@@ -45,5 +47,6 @@ private:
 	static int kplm‰‰r‰;
 	static SDL_Texture *m_SpaceBackgroundTexture;
 	static SDL_Color m_color;
+	static double m_renderscale;
 };
 

@@ -1,5 +1,6 @@
 #include "MainMenu.h"
 
+#define NothingPressed -1
 #define StartButton 0
 #define OptionsButton 1
 #define CreditsButton 2
@@ -15,7 +16,7 @@ MainMenu::MainMenu()
 		int posy = (i * 150 + 50);
 		string name[ButtonCount_main] = {"Start", "Options", "Credits", "Quit"};
 
-		buttons[i].SetButton(name[i], posx, posy, (posx+150), (posy+50), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + ".png", SDLCore::GetRenderer()), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + "_down.png", SDLCore::GetRenderer()));
+		buttons[i].SetButton(name[i], posx, posy, (150), (50), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + ".png", SDLCore::GetRenderer()), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + "_down.png", SDLCore::GetRenderer()));
 	}
 	MainMenu::m_MainMenuBackgroundTexture = SDLCore::loadTexture(SDLCore::GetRespath() + "mainmenu_background.png", SDLCore::GetRenderer());
 }
@@ -34,7 +35,7 @@ int MainMenu::CreateMainMenu()
 		MainMenu::Mainmenu = new MainMenu();
 	}
 	//Luodaan MainMenun tausta
-	renderTexture(Mainmenu->m_MainMenuBackgroundTexture, SDLCore::GetRenderer(), 0, 0);
+	renderTexture(Mainmenu->m_MainMenuBackgroundTexture, SDLCore::GetRenderer(), 0, 0, 1920, 1080);
 	//Luodaan MainMenun napit
 	for (int i = 0; i < ButtonCount_main; i++)
 	{
@@ -57,13 +58,17 @@ int Universe_ThreadFunction(void* data)
 
 int MainMenu::ButtonPressed()
 {
+	if (MainMenu::m_ButtonIndex == NothingPressed)
+	{
+		return 0;
+	}
 			//Täällä napin painallus aiheuttaa jotain
 	if (SDLCore::GetEvent()->button.x >= Mainmenu->buttons[Mainmenu->m_ButtonIndex].GetPosX() && SDLCore::GetEvent()->button.y >= Mainmenu->buttons[Mainmenu->m_ButtonIndex].GetPosY() && SDLCore::GetEvent()->button.x <= Mainmenu->buttons[Mainmenu->m_ButtonIndex].GetSizeX() && SDLCore::GetEvent()->button.y <= Mainmenu->buttons[Mainmenu->m_ButtonIndex].GetSizeY())
 	{
 		switch (Mainmenu->m_ButtonIndex)
 		{
 		case StartButton:			
-			kappale = Gravitaatio::CreateUniverse(5);
+			kappale = Gravitaatio::CreateUniverse(OptionsMenu::GetKpl());
 
 			kappale[0].Init("Planeetta1", 1.0e13, 0.0, 0.0, 0.0, 0.0);
 			kappale[1].Init("Pallo1", 1.0e11, 9.0, 0.0, 0.0, 11.61125878);
@@ -110,6 +115,13 @@ int MainMenu::ButtonPressedDown()
 			break;
 		}
 	}
+
+	if (!(SDLCore::GetEvent()->button.x >= Mainmenu->buttons[m_ButtonIndex].GetPosX() && SDLCore::GetEvent()->button.y >= Mainmenu->buttons[m_ButtonIndex].GetPosY() && SDLCore::GetEvent()->button.x <= Mainmenu->buttons[m_ButtonIndex].GetSizeX() && SDLCore::GetEvent()->button.y <= Mainmenu->buttons[m_ButtonIndex].GetSizeY()))
+	{
+		Mainmenu->m_ButtonIndex = NothingPressed;
+		return 0;
+	}
+
 	SDL_RenderPresent(SDLCore::GetRenderer());
 	return 0;
 }

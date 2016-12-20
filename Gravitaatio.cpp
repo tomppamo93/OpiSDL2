@@ -4,12 +4,13 @@
 double Gravitaatio::simtime  = 0.00001;
 double Gravitaatio::gconst   = 6.67384e-11;
 int    Gravitaatio::kplmäärä = 0;
+double Gravitaatio::m_renderscale = 5.0;
 SDL_Texture *Gravitaatio::m_SpaceBackgroundTexture = NULL;
 SDL_Color   Gravitaatio::m_color = {0, 0, 0, 0};
 
 Gravitaatio::Gravitaatio()
 {
-	m_mass = m_pos_x = m_pos_y = m_vel_x = m_vel_y = 0.0;
+	m_rad = m_mass = m_pos_x = m_pos_y = m_vel_x = m_vel_y = 0.0;
 	m_name = "Name";
 
 	m_planeetta = SDLCore::loadTexture(SDLCore::GetRespath() + "pallo.png", SDLCore::GetRenderer());
@@ -47,8 +48,8 @@ int Gravitaatio::Init(std::string name, double mass, double pos_x, double pos_y,
 double Gravitaatio::Distance(Gravitaatio *kpl1, Gravitaatio *kpl2)
 {
 	double apu = sqrt(pow((kpl1->m_pos_x - kpl2->m_pos_x), 2) + pow((kpl1->m_pos_y - kpl2->m_pos_y), 2));
-	if (apu < 1.0)
-		apu = 1.0;
+	if (apu < 0.8)
+		apu = 0.8;
 	return apu;
 }
 
@@ -125,26 +126,6 @@ Gravitaatio *Gravitaatio::CreateUniverse(int kplmäärä2)
 	return kpl;
 }
 
-/*
-int Gravitaatio::DrawUniverseThread(void* data)
-{
-	Gravitaatio *kappale = (Gravitaatio*)data;
-	while (true)
-	{
-		renderTexture(Gravitaatio::m_SpaceBackgroundTexture, SDLCore::GetRenderer(), 0, 0, 1920, 1080);
-		renderTexture(Gravitaatio::m_planeetta, SDLCore::GetRenderer(), (int)(kappale[0].GetPosX() * 10) + 960, (int)(kappale[0].GetPosY() * 10) + 540);
-		renderTexture(Gravitaatio::m_pallo, SDLCore::GetRenderer(), (int)(kappale[1].GetPosX() * 10) + 960, (int)(kappale[1].GetPosY() * 10) + 540);
-		renderTexture(Gravitaatio::m_pallo, SDLCore::GetRenderer(), (int)(kappale[2].GetPosX() * 10) + 960, (int)(kappale[2].GetPosY() * 10) + 540);
-		renderTexture(Gravitaatio::m_pallo, SDLCore::GetRenderer(), (int)(kappale[3].GetPosX() * 10) + 960, (int)(kappale[3].GetPosY() * 10) + 540);
-		renderTexture(Gravitaatio::m_pallo, SDLCore::GetRenderer(), (int)(kappale[4].GetPosX() * 10) + 960, (int)(kappale[4].GetPosY() * 10) + 540);
-		SDL_RenderPresent(SDLCore::GetRenderer());
-
-		SDL_Delay(25);
-	}
-	return 0;
-}
-*/
-
 int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 {
 	while (!GameLoop::GetQuit())
@@ -162,17 +143,18 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 		}
 
 		renderTexture(m_SpaceBackgroundTexture, SDLCore::GetRenderer(), 0, 0, 1920, 1080);
-		
+		//Kappaleiden päälle renderöidään tekstiä
 		for (int i = 0; i < kplmäärä; i++)
 		{	
 			kappale[i].m_text = renderText("Kappale: " + kappale[i].m_name, "C:\\Windows\\Fonts\\Arial.ttf", m_color, 12, SDLCore::GetRenderer());
-			renderTexture(kappale[i].m_text, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * 10) + 920, (int)(kappale[i].GetPosY() * 10) + 528);
+			renderTexture(kappale[i].m_text, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * m_renderscale) + 920, (int)(kappale[i].GetPosY() * m_renderscale) + 525);
 			SDL_DestroyTexture(kappale[i].m_text);
 		}
-
+		
+		//Renderöidään kappaleet
 		for (int i = 0; i < kplmäärä; i++)
 		{
-			renderTexture(kappale[i].m_planeetta, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * 10) + 960, (int)(kappale[i].GetPosY() * 10) + 540);
+			renderTexture(kappale[i].m_planeetta, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * m_renderscale) + 960, (int)(kappale[i].GetPosY() * m_renderscale) + 540);
 		}
 		
 		SDL_RenderPresent(SDLCore::GetRenderer());

@@ -1,5 +1,6 @@
 #include "CreditsMenu.h"
 
+#define NothingPressed -1
 #define BackButton 1
 
 CreditsMenu *CreditsMenu::Creditsmenu = NULL;
@@ -12,7 +13,7 @@ CreditsMenu::CreditsMenu()
 		int posy = (i * 150 + 50);
 		string name[ButtonCount_credits] = { "Start", "Back"};
 
-		buttons[i].SetButton(name[i], posx, posy, (posx + 150), (posy + 50), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + ".png", SDLCore::GetRenderer()), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + "_down.png", SDLCore::GetRenderer()));
+		buttons[i].SetButton(name[i], posx, posy, 150, 50, SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + ".png", SDLCore::GetRenderer()), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + "_down.png", SDLCore::GetRenderer()));
 	}
 	CreditsMenu::m_CreditsMenuBackgroundTexture = SDLCore::loadTexture(SDLCore::GetRespath() + "mainmenu_background.png", SDLCore::GetRenderer());
 }
@@ -30,7 +31,7 @@ int CreditsMenu::CreateCreditsMenu()
 		CreditsMenu::Creditsmenu = new CreditsMenu();
 	}
 	//Luodaan CreditsMenun tausta
-	renderTexture(Creditsmenu->m_CreditsMenuBackgroundTexture, SDLCore::GetRenderer(), 0, 0);
+	renderTexture(Creditsmenu->m_CreditsMenuBackgroundTexture, SDLCore::GetRenderer(), 0, 0, 1920, 1080);
 	//Luodaan CreditsMenun napit
 	for (int i = 0; i < ButtonCount_credits; i++)
 	{
@@ -43,6 +44,12 @@ int CreditsMenu::CreateCreditsMenu()
 
 int CreditsMenu::ButtonPressed()
 {
+
+	if (CreditsMenu::m_ButtonIndex == NothingPressed)
+	{
+		return 0;
+	}
+
 	//Täällä napin painallus aiheuttaa jotain
 	if (SDLCore::GetEvent()->button.x >= Creditsmenu->buttons[Creditsmenu->m_ButtonIndex].GetPosX() && SDLCore::GetEvent()->button.y >= Creditsmenu->buttons[Creditsmenu->m_ButtonIndex].GetPosY() && SDLCore::GetEvent()->button.x <= Creditsmenu->buttons[Creditsmenu->m_ButtonIndex].GetSizeX() && SDLCore::GetEvent()->button.y <= Creditsmenu->buttons[Creditsmenu->m_ButtonIndex].GetSizeY())
 	{
@@ -82,6 +89,13 @@ int CreditsMenu::ButtonPressedDown()
 			break;
 		}
 	}
+
+	if (!(SDLCore::GetEvent()->button.x >= Creditsmenu->buttons[m_ButtonIndex].GetPosX() && SDLCore::GetEvent()->button.y >= Creditsmenu->buttons[m_ButtonIndex].GetPosY() && SDLCore::GetEvent()->button.x <= Creditsmenu->buttons[m_ButtonIndex].GetSizeX() && SDLCore::GetEvent()->button.y <= Creditsmenu->buttons[m_ButtonIndex].GetSizeY()))
+	{
+		Creditsmenu->m_ButtonIndex = NothingPressed;
+		return 0;
+	}
+
 	SDL_RenderPresent(SDLCore::GetRenderer());
 
 	return 0;
