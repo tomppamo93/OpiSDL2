@@ -24,16 +24,21 @@ public:
 	double GetVelX() { return m_vel_x; };
 	double GetVelY() { return m_vel_y; };
 
+	static double GetSimtime()            { return simtime; };
+	static void   SetSimtime(double time) { simtime = time; };
+
 	static double Distance(Gravitaatio *orgkpl, Gravitaatio *kpl);
 	static double Acceleration(Gravitaatio *orgkpl, Gravitaatio *kpl);
 	static void   VelX(Gravitaatio *orgkpl, Gravitaatio *kpl), VelY(Gravitaatio *orgkpl, Gravitaatio *kpl);
 	static void   PosX(Gravitaatio *orgkpl), PosY(Gravitaatio *orgkpl);
+	static bool   CheckCollision(Gravitaatio *kpl1, Gravitaatio *kpl2);
 
 	static int Update(Gravitaatio*);
 	static Gravitaatio *CreateUniverse(int);
 	static int RenderUniverse(Gravitaatio *kappale);
 
-	static double SetRenderScale(double scale) { m_renderscale = scale; };
+	static void   SetRenderScale(double scale) { m_renderscale = scale; };
+	static double GetRenderScale()             { return m_renderscale; };
 private:
 	std::string m_name;
 	double m_mass, m_rad;

@@ -22,7 +22,7 @@ private:
 	int m_ButtonIndex = 0;
 	MenuButtons buttons[ButtonCount_options];
 	SDL_Texture *m_OptionsMenuBackgroundTexture;
-	SDL_Texture *m_text;
+	SDL_Texture *m_text, *m_text2;
 	SDL_Color color = { 255, 255, 255, 0 };
 	static unsigned int m_kplm‰‰r‰;
 };

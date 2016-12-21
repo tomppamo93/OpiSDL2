@@ -18,7 +18,8 @@ OptionsMenu::OptionsMenu()
 																								//Placeholder tekstuuri
 	OptionsMenu::m_OptionsMenuBackgroundTexture = SDLCore::loadTexture(SDLCore::GetRespath() + "mainmenu_background.png", SDLCore::GetRenderer());
 	
-	OptionsMenu::m_text = renderText("Kappaleiden lukumäärä: " + to_string(m_kplmäärä), "C:\\Windows\\Fonts\\Arial.ttf", color, 12, SDLCore::GetRenderer());
+	OptionsMenu::m_text = renderText("Kpl lukumäärä -> " + to_string(m_kplmäärä), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+	OptionsMenu::m_text2 = renderText("Render Scale -> " + to_string(Gravitaatio::GetRenderScale()), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
 }
 
 OptionsMenu::~OptionsMenu()
@@ -39,6 +40,7 @@ int OptionsMenu::CreateOptionsMenu()
 	{
 		renderTexture(Optionsmenu->buttons[i].GetTexture(), SDLCore::GetRenderer(), Optionsmenu->buttons[i].GetPosX(), Optionsmenu->buttons[i].GetPosY());
 	}
+
 	//Optionsmenun renderöinti
 	SDL_RenderPresent(SDLCore::GetRenderer());
 	return 0;
@@ -46,6 +48,9 @@ int OptionsMenu::CreateOptionsMenu()
 
 int OptionsMenu::ButtonPressed()
 {
+
+	double scale = Gravitaatio::GetRenderScale();
+
 	if (OptionsMenu::m_ButtonIndex == NothingPressed)
 	{
 		return 0;
@@ -63,23 +68,109 @@ int OptionsMenu::ButtonPressed()
 			MainMenu::CreateMainMenu();
 			break;
 		case 2:
+			//PLUS
 			OptionsMenu::CreateOptionsMenu();
 			SDL_DestroyTexture(m_text);
 			m_kplmäärä++;
-			OptionsMenu::m_text = renderText("Kappaleiden lukumäärä: " + to_string(m_kplmäärä), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
-			renderTexture(m_text, SDLCore::GetRenderer(), 300, 75);
+			OptionsMenu::m_text = renderText("Kpl lukumäärä -> " + to_string(m_kplmäärä), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+			renderTexture(m_text, SDLCore::GetRenderer(), 300, 87);
+			renderTexture(m_text2, SDLCore::GetRenderer(), 300, 237);
 			SDL_RenderPresent(SDLCore::GetRenderer());
 			break;
 		case 3:
+			//MIINUS
 			if (m_kplmäärä != 1)
 			{
 				OptionsMenu::CreateOptionsMenu();
-				SDL_DestroyTexture(m_text);
+				SDL_DestroyTexture(OptionsMenu::m_text);
 				m_kplmäärä--;
-				OptionsMenu::m_text = renderText("Kappaleiden lukumäärä: " + to_string(m_kplmäärä), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
-				renderTexture(m_text, SDLCore::GetRenderer(), 300, 75);
+				OptionsMenu::m_text = renderText("Kpl lukumäärä -> " + to_string(m_kplmäärä), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+				renderTexture(m_text, SDLCore::GetRenderer(), 300, 87);
+				renderTexture(m_text2, SDLCore::GetRenderer(), 300, 237);
 				SDL_RenderPresent(SDLCore::GetRenderer());
 			}
+			break;
+		case 4:
+			//PLUS
+			if (scale >= 10.0)
+			{
+				OptionsMenu::CreateOptionsMenu();
+				SDL_DestroyTexture(m_text2);
+
+				Gravitaatio::SetRenderScale(scale * 2.0);
+
+				OptionsMenu::m_text2 = renderText("Render Scale -> " + to_string(Gravitaatio::GetRenderScale()), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+				renderTexture(m_text2, SDLCore::GetRenderer(), 300, 237);
+				renderTexture(m_text, SDLCore::GetRenderer(), 300, 87);
+				SDL_RenderPresent(SDLCore::GetRenderer());
+				break;
+			}
+
+			if (scale <= 1.0)
+			{
+				OptionsMenu::CreateOptionsMenu();
+				SDL_DestroyTexture(m_text2);
+
+				Gravitaatio::SetRenderScale(scale*10);
+
+				OptionsMenu::m_text2 = renderText("Render Scale -> " + to_string(Gravitaatio::GetRenderScale()), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+				renderTexture(m_text2, SDLCore::GetRenderer(), 300, 237);
+				renderTexture(m_text, SDLCore::GetRenderer(), 300, 87);
+				SDL_RenderPresent(SDLCore::GetRenderer());
+				break;
+			}
+
+			OptionsMenu::CreateOptionsMenu();
+			SDL_DestroyTexture(m_text2);
+
+			Gravitaatio::SetRenderScale(scale+1.0);
+
+			OptionsMenu::m_text2 = renderText("Render Scale -> " + to_string(Gravitaatio::GetRenderScale()), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+			renderTexture(m_text2, SDLCore::GetRenderer(), 300, 237);
+			renderTexture(m_text, SDLCore::GetRenderer(), 300, 87);
+			SDL_RenderPresent(SDLCore::GetRenderer());
+			break;
+		case 5:
+			//MIINUS
+			if (scale <= 1.0)
+			{
+				if (!(scale == 0.00001))
+				{
+					OptionsMenu::CreateOptionsMenu();
+					SDL_DestroyTexture(m_text2);
+
+					Gravitaatio::SetRenderScale(scale / 10.0);
+
+					OptionsMenu::m_text2 = renderText("Render Scale -> " + to_string(Gravitaatio::GetRenderScale()), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+					renderTexture(m_text2, SDLCore::GetRenderer(), 300, 237);
+					renderTexture(m_text, SDLCore::GetRenderer(), 300, 87);
+					SDL_RenderPresent(SDLCore::GetRenderer());
+				}
+				break;
+			}
+
+			if (scale > 10.0)
+			{
+				OptionsMenu::CreateOptionsMenu();
+				SDL_DestroyTexture(m_text2);
+
+				Gravitaatio::SetRenderScale(scale/2);
+
+				OptionsMenu::m_text2 = renderText("Render Scale -> " + to_string(Gravitaatio::GetRenderScale()), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+				renderTexture(m_text2, SDLCore::GetRenderer(), 300, 237);
+				renderTexture(m_text, SDLCore::GetRenderer(), 300, 87);
+				SDL_RenderPresent(SDLCore::GetRenderer());
+				break;
+			}
+			OptionsMenu::CreateOptionsMenu();
+			SDL_DestroyTexture(m_text2);
+
+			Gravitaatio::SetRenderScale(scale-1.0);
+
+			OptionsMenu::m_text2 = renderText("Render Scale -> " + to_string(Gravitaatio::GetRenderScale()), "C:\\Windows\\Fonts\\Arial.ttf", color, 24, SDLCore::GetRenderer());
+			renderTexture(m_text2, SDLCore::GetRenderer(), 300, 237);
+			renderTexture(m_text, SDLCore::GetRenderer(), 300, 87);
+			SDL_RenderPresent(SDLCore::GetRenderer());
 			break;
 		default:
 			break;

@@ -163,3 +163,13 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 	}
 	return 0;
 }
+
+//Jos kappaleiden säteiden summa on pienempi kuin niiden välinen etäisyys on tapahtunut törmäys
+bool Gravitaatio::CheckCollision(Gravitaatio *kpl1, Gravitaatio *kpl2)
+{
+	if ((kpl1->m_rad + kpl2->m_rad) < Distance(kpl1, kpl2))
+	{
+		return true;
+	}
+		return false;
+}
