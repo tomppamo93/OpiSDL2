@@ -12,10 +12,10 @@ public:
 
 	void Randomisize(int seed);
 
-	int getRandomInt() { return Value; };
+	double getRandomInt() { return Value; };
 
 private:
-	int Value;
+	double Value;
 	
 
 };

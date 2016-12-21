@@ -13,10 +13,10 @@ Randomi::Randomi()
 }
 void Randomi::Randomisize(int seed)
 {
-	while (!(seed <= 1024) && !(seed >= 100))
+	while (!(seed <= 1024 * 100000) && !(seed >= 100 * 100000))
 	{
 		std::srand(seed);
-		Value = seed;
+		Value = seed/100000;
 		continue;
 	}
 }
