@@ -70,11 +70,11 @@ int MainMenu::ButtonPressed()
 		case StartButton:			
 			kappale = Gravitaatio::CreateUniverse(OptionsMenu::GetKpl());
 
-			kappale[0].Init("Planeetta1", 1.0e13, 0.0, 0.0, 0.0, 0.0);
-			kappale[1].Init("Pallo1", 1.0e11, 9.0, 0.0, 0.0, 11.61125878);
-			kappale[2].Init("Pallo2", 5.0, 15.0, 0.0, 0.0, 5.61125878);
-			kappale[3].Init("Pallo3", 5.0, -40.0, 0.0, 0.0, -2.5);
-			kappale[4].Init("Pallo4", 5.0, -20.0, 0.0, 0.0, -2.5);
+			kappale[0].Init("Planeetta1", 1.0e13, 0.0, 0.0, 0.0, 0.0, 1.0);
+			kappale[1].Init("Pallo1", 1.0e11, 9.0, 0.0, 0.0, 11.61125878, 1.0);
+			kappale[2].Init("Pallo2", 5.0, 15.0, 0.0, 0.0, 5.61125878, 1.0);
+			kappale[3].Init("Pallo3", 5.0, -40.0, 0.0, 0.0, -2.5, 1.0);
+			kappale[4].Init("Pallo4", 5.0, -20.0, 0.0, 0.0, -2.5, 1.0);
 
 			SDLCore::SetThread(SDL_CreateThread(Universe_ThreadFunction, "UpdateUniverse", (void*)kappale));
 			Gravitaatio::RenderUniverse(kappale);

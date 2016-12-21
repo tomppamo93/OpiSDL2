@@ -16,7 +16,7 @@ public:
 	Gravitaatio();
 	~Gravitaatio();
 	
-	int Init(std::string name, double mass, double pos_x, double pos_y, double vel_x, double vel_y);
+	int Init(std::string name, double mass, double pos_x, double pos_y, double vel_x, double vel_y, double rad);
 
 	double GetPosX() { return m_pos_x; };
 	double GetPosY() { return m_pos_y; };
@@ -36,6 +36,7 @@ public:
 	static int Update(Gravitaatio*);
 	static Gravitaatio *CreateUniverse(int);
 	static int RenderUniverse(Gravitaatio *kappale);
+	static void Collision(Gravitaatio*, Gravitaatio*);
 
 	static void   SetRenderScale(double scale) { m_renderscale = scale; };
 	static double GetRenderScale()             { return m_renderscale; };
@@ -46,6 +47,7 @@ private:
 	double m_vel_x, m_vel_y;
 	SDL_Texture *m_planeetta;
 	SDL_Texture *m_text;
+	bool m_active;
 
 	static double simtime;
 	static double gconst;

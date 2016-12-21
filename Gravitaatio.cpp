@@ -8,10 +8,13 @@ double Gravitaatio::m_renderscale = 5.0;
 SDL_Texture *Gravitaatio::m_SpaceBackgroundTexture = NULL;
 SDL_Color   Gravitaatio::m_color = {0, 0, 0, 0};
 
+
 Gravitaatio::Gravitaatio()
 {
 	m_rad = m_mass = m_pos_x = m_pos_y = m_vel_x = m_vel_y = 0.0;
 	m_name = "Name";
+
+	m_active = true;
 
 	m_planeetta = SDLCore::loadTexture(SDLCore::GetRespath() + "pallo.png", SDLCore::GetRenderer());
 
@@ -31,10 +34,11 @@ Gravitaatio::~Gravitaatio()
 }
 
 //Kappaleiden alustus funktio
-int Gravitaatio::Init(std::string name, double mass, double pos_x, double pos_y, double vel_x, double vel_y)
+int Gravitaatio::Init(std::string name, double mass, double pos_x, double pos_y, double vel_x, double vel_y , double rad)
 {
 	m_name  = name;
 	m_mass  = mass;
+	m_rad   = rad;
 
 	m_pos_x = pos_x;
 	m_pos_y = pos_y;
@@ -47,10 +51,7 @@ int Gravitaatio::Init(std::string name, double mass, double pos_x, double pos_y,
 //Etäisyyden laskenta
 double Gravitaatio::Distance(Gravitaatio *kpl1, Gravitaatio *kpl2)
 {
-	double apu = sqrt(pow((kpl1->m_pos_x - kpl2->m_pos_x), 2) + pow((kpl1->m_pos_y - kpl2->m_pos_y), 2));
-	if (apu < 0.8)
-		apu = 0.8;
-	return apu;
+	return sqrt(pow((kpl1->m_pos_x - kpl2->m_pos_x), 2) + pow((kpl1->m_pos_y - kpl2->m_pos_y), 2));
 }
 
 //Kiihtyvyyden laskenta
@@ -78,9 +79,12 @@ void Gravitaatio::VelX(Gravitaatio *orgkpl, Gravitaatio *kpl)
 
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (orgkpl != &kpl[i])
+		if (kpl[i].m_active == true)
 		{
-			velx += ((cos(acos((orgkpl->m_pos_x - kpl[i].m_pos_x) / pow(Distance(orgkpl, &kpl[i]), 2))) * Acceleration(orgkpl, &kpl[i])) * simtime);
+			if (orgkpl != &kpl[i])
+			{
+				velx += ((cos(acos((orgkpl->m_pos_x - kpl[i].m_pos_x) / pow(Distance(orgkpl, &kpl[i]), 2))) * Acceleration(orgkpl, &kpl[i])) * simtime);
+			}
 		}
 	}
 	orgkpl->m_vel_x = velx;
@@ -93,9 +97,12 @@ void Gravitaatio::VelY(Gravitaatio *orgkpl, Gravitaatio *kpl)
 
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (orgkpl != &kpl[i])
+		if (kpl[i].m_active == true)
 		{
-			vely += ((sin(asin((orgkpl->m_pos_y - kpl[i].m_pos_y) / pow(Distance(orgkpl, &kpl[i]), 2))) * Acceleration(orgkpl, &kpl[i])) * simtime);
+			if (orgkpl != &kpl[i])
+			{
+				vely += ((sin(asin((orgkpl->m_pos_y - kpl[i].m_pos_y) / pow(Distance(orgkpl, &kpl[i]), 2))) * Acceleration(orgkpl, &kpl[i])) * simtime);
+			}
 		}
 	}
 	orgkpl->m_vel_y = vely;
@@ -106,14 +113,28 @@ int Gravitaatio::Update(Gravitaatio *kpl)
 {
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		PosX(&kpl[i]);
-		PosY(&kpl[i]);
+		if (kpl[i].m_active == true)
+		{
+			PosX(&kpl[i]);
+			PosY(&kpl[i]);
+		}
 	}
 
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		VelX(&kpl[i], kpl);
-		VelY(&kpl[i], kpl);
+		if (kpl[i].m_active == true)
+		{
+			VelX(&kpl[i], kpl);
+			VelY(&kpl[i], kpl);
+		}
+	}
+
+	for (int i = 0; i < kplmäärä; i++)
+	{
+		if (kpl[i].m_active == true)
+		{
+			Collision(&kpl[i], kpl);
+		}
 	}
 	return 0;
 }
@@ -141,20 +162,26 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 				}
 			}
 		}
-
+		
 		renderTexture(m_SpaceBackgroundTexture, SDLCore::GetRenderer(), 0, 0, 1920, 1080);
 		//Kappaleiden päälle renderöidään tekstiä
 		for (int i = 0; i < kplmäärä; i++)
-		{	
-			kappale[i].m_text = renderText("Kappale: " + kappale[i].m_name, "C:\\Windows\\Fonts\\Arial.ttf", m_color, 12, SDLCore::GetRenderer());
-			renderTexture(kappale[i].m_text, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * m_renderscale) + 920, (int)(kappale[i].GetPosY() * m_renderscale) + 525);
-			SDL_DestroyTexture(kappale[i].m_text);
+		{
+			if (kappale[i].m_active == true)
+			{
+				kappale[i].m_text = renderText("Kappale: " + kappale[i].m_name, "C:\\Windows\\Fonts\\Arial.ttf", m_color, 12, SDLCore::GetRenderer());
+				renderTexture(kappale[i].m_text, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * m_renderscale) + 920, (int)(kappale[i].GetPosY() * m_renderscale) + 525);
+				SDL_DestroyTexture(kappale[i].m_text);
+			}
 		}
 		
 		//Renderöidään kappaleet
 		for (int i = 0; i < kplmäärä; i++)
 		{
-			renderTexture(kappale[i].m_planeetta, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * m_renderscale) + 960, (int)(kappale[i].GetPosY() * m_renderscale) + 540);
+			if (kappale[i].m_active == true)
+			{
+				renderTexture(kappale[i].m_planeetta, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * m_renderscale) + 960, (int)(kappale[i].GetPosY() * m_renderscale) + 540);
+			}
 		}
 		
 		SDL_RenderPresent(SDLCore::GetRenderer());
@@ -163,11 +190,38 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 	}
 	return 0;
 }
+void Gravitaatio::Collision(Gravitaatio *orgkpl, Gravitaatio *kpl)
+{
+	for (int i = 0; i < kplmäärä; i++)
+	{
+		if (orgkpl != &kpl[i])
+		{
+			if (CheckCollision(orgkpl, &kpl[i]))
+			{
+				double m1 = orgkpl->m_mass, m2 = kpl[i].m_mass;
+
+				double LK2X = (m2 * kpl[i].m_vel_x);
+				double LK2Y = (m2 * kpl[i].m_vel_y);
+				double LK1X = (m1 * orgkpl->m_vel_x);
+				double LK1Y = (m1 * orgkpl->m_vel_y);
+				double kokM = (m1 + m2);
+				double kokVx = (LK1X + LK2X) / kokM;
+				double kokVy = (LK1Y + LK2Y) / kokM;
+
+				orgkpl->m_vel_x = kokVx;
+				orgkpl->m_vel_y = kokVy;
+				orgkpl->m_mass = kokM;
+
+				kpl[i].m_active = false;
+			}
+		}
+	}
+}
 
 //Jos kappaleiden säteiden summa on pienempi kuin niiden välinen etäisyys on tapahtunut törmäys
 bool Gravitaatio::CheckCollision(Gravitaatio *kpl1, Gravitaatio *kpl2)
 {
-	if ((kpl1->m_rad + kpl2->m_rad) < Distance(kpl1, kpl2))
+	if ((kpl1->m_rad + kpl2->m_rad) > Distance(kpl1, kpl2))
 	{
 		return true;
 	}
