@@ -25,7 +25,9 @@ public:
 	double GetVelY() { return m_vel_y; };
 
 	static double GetSimtime()            { return simtime; };
+	static double GetCalcCounter() { return calccounter; };
 	static void   SetSimtime(double time) { simtime = time; };
+	static void   SetCalcCounter(unsigned int counter) { calccounter = counter; };
 
 	static double Distance(Gravitaatio *orgkpl, Gravitaatio *kpl);
 	static double Acceleration(Gravitaatio *orgkpl, Gravitaatio *kpl);
@@ -53,6 +55,8 @@ private:
 	static double gconst;
 	static int kplm‰‰r‰;
 	static SDL_Texture *m_SpaceBackgroundTexture;
+	static SDL_Texture *m_SimTimeText;
+	static unsigned int calccounter;
 	static SDL_Color m_color;
 	static double m_renderscale;
 };

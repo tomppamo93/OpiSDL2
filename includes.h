@@ -9,7 +9,7 @@
 #include <SDL_ttf.h>
 #include "res_path.h"
 #include <functional>
-#include <chrono>
+//#include <chrono>
 #include <fstream>
 #include <ostream>
 #include <Windows.h>

@@ -134,7 +134,7 @@ int OptionsMenu::ButtonPressed()
 			//MIINUS
 			if (scale <= 1.0)
 			{
-				if (!(scale == 0.00001))
+				if (!(scale == 0.000001))
 				{
 					OptionsMenu::CreateOptionsMenu();
 					SDL_DestroyTexture(m_text2);

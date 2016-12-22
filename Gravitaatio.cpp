@@ -1,11 +1,13 @@
 #include "Gravitaatio.h"
 
 
-double Gravitaatio::simtime  = 0.00001;
+double Gravitaatio::simtime  = 0.01;
 double Gravitaatio::gconst   = 6.67384e-11;
 int    Gravitaatio::kplmäärä = 0;
 double Gravitaatio::m_renderscale = 5.0;
+unsigned int Gravitaatio::calccounter = 0;
 SDL_Texture *Gravitaatio::m_SpaceBackgroundTexture = NULL;
+SDL_Texture *Gravitaatio::m_SimTimeText = NULL;
 SDL_Color   Gravitaatio::m_color = {0, 0, 0, 0};
 
 
@@ -151,7 +153,6 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 {
 	while (!GameLoop::GetQuit())
 	{
-
 		while (SDL_PollEvent(SDLCore::GetEvent()))
 		{
 			if (SDLCore::GetEvent()->type == SDL_KEYUP)
@@ -161,8 +162,7 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 					GameLoop::SetQuit(true);
 				}
 			}
-		}
-		
+		}	
 		renderTexture(m_SpaceBackgroundTexture, SDLCore::GetRenderer(), 0, 0, 1920, 1080);
 		//Kappaleiden päälle renderöidään tekstiä
 		for (int i = 0; i < kplmäärä; i++)
@@ -170,58 +170,65 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 			if (kappale[i].m_active == true)
 			{
 				kappale[i].m_text = renderText("Kappale: " + kappale[i].m_name, "C:\\Windows\\Fonts\\Arial.ttf", m_color, 12, SDLCore::GetRenderer());
-				renderTexture(kappale[i].m_text, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * m_renderscale) + 920, (int)(kappale[i].GetPosY() * m_renderscale) + 525);
+				renderTexture(kappale[i].m_text, SDLCore::GetRenderer(), (int)((kappale[i].m_pos_x * m_renderscale) + 920 - kappale[i].m_rad * m_renderscale), (int)((kappale[i].m_pos_y * m_renderscale) + 525 - kappale[i].m_rad * m_renderscale));
+				SDL_DestroyTexture(kappale[i].m_text);
+				kappale[i].m_text = renderText("Massa::: " + to_string(kappale[i].m_mass), "C:\\Windows\\Fonts\\Arial.ttf", m_color, 12, SDLCore::GetRenderer());
+				renderTexture(kappale[i].m_text, SDLCore::GetRenderer(), (int)((kappale[i].m_pos_x * m_renderscale) + 920 - kappale[i].m_rad * m_renderscale), (int)((kappale[i].m_pos_y * m_renderscale) + 513 - kappale[i].m_rad * m_renderscale));
 				SDL_DestroyTexture(kappale[i].m_text);
 			}
-		}
-		
+		}	
+
+		//Renderöidään simulaation aika näytön reunaan
+		m_SimTimeText = renderText("Sim Time: " + to_string(simtime * calccounter), "C:\\Windows\\Fonts\\Arial.ttf", m_color, 24, SDLCore::GetRenderer());
+		renderTexture(m_SimTimeText, SDLCore::GetRenderer(), 0, 0);
+		SDL_DestroyTexture(m_SimTimeText);
+		m_SimTimeText = renderText("Calculations: " + to_string(calccounter), "C:\\Windows\\Fonts\\Arial.ttf", m_color, 24, SDLCore::GetRenderer());
+		renderTexture(m_SimTimeText, SDLCore::GetRenderer(), 0, 24);
+		SDL_DestroyTexture(m_SimTimeText);
+
 		//Renderöidään kappaleet
 		for (int i = 0; i < kplmäärä; i++)
 		{
 			if (kappale[i].m_active == true)
 			{
-				renderTexture(kappale[i].m_planeetta, SDLCore::GetRenderer(), (int)(kappale[i].GetPosX() * m_renderscale) + 960, (int)(kappale[i].GetPosY() * m_renderscale) + 540);
+				renderTexture(kappale[i].m_planeetta, SDLCore::GetRenderer(), (int)((kappale[i].m_pos_x * m_renderscale) + 960 - kappale[i].m_rad * m_renderscale), (int)((kappale[i].m_pos_y * m_renderscale) + 540 - kappale[i].m_rad * m_renderscale), (int)(kappale[i].m_rad * 2.0 * m_renderscale), (int)(kappale[i].m_rad * 2.0 * m_renderscale));
 			}
 		}
 		
 		SDL_RenderPresent(SDLCore::GetRenderer());
-
 		SDL_Delay(25);
 	}
 	return 0;
 }
+
+//Kappaleiden yhteentörmäyksessä tuhotaan toinen kappaleista mutta liikemäärä säilyy niiden yhdistelmässä
 void Gravitaatio::Collision(Gravitaatio *orgkpl, Gravitaatio *kpl)
 {
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (orgkpl != &kpl[i])
+		if (orgkpl != &kpl[i] && kpl[i].m_active == true)
 		{
-			if (CheckCollision(orgkpl, &kpl[i]))
-			{
-				double m1 = orgkpl->m_mass, m2 = kpl[i].m_mass;
-
-				double LK2X = (m2 * kpl[i].m_vel_x);
-				double LK2Y = (m2 * kpl[i].m_vel_y);
-				double LK1X = (m1 * orgkpl->m_vel_x);
-				double LK1Y = (m1 * orgkpl->m_vel_y);
-				double kokM = (m1 + m2);
-				double kokVx = (LK1X + LK2X) / kokM;
-				double kokVy = (LK1Y + LK2Y) / kokM;
-
-				orgkpl->m_vel_x = kokVx;
-				orgkpl->m_vel_y = kokVy;
-				orgkpl->m_mass = kokM;
-
-				kpl[i].m_active = false;
-			}
+				if (CheckCollision(orgkpl, &kpl[i]))
+				{
+					double m1 = orgkpl->m_mass, m2 = kpl[i].m_mass;
+					orgkpl->m_vel_x = ((m1 / (m1 + m2))*(orgkpl->m_vel_x - kpl[i].m_vel_x));
+					orgkpl->m_vel_y = ((m1 / (m1 + m2))*(orgkpl->m_vel_y - kpl[i].m_vel_y));
+					orgkpl->m_mass = (m1 + m2);
+					//double LK2X = (m2 * (kpl[i].m_vel_x - orgkpl->m_vel_x)), LK1X = (m1 * (orgkpl->m_vel_x - kpl[i].m_vel_x));
+					//double LK2Y = (m2 * (kpl[i].m_vel_y - orgkpl->m_vel_y)), LK1Y = (m1 * (orgkpl->m_vel_y - kpl[i].m_vel_y));
+					//orgkpl->m_vel_x = ((LK1X + LK2X) / (m1 + m2));
+					//orgkpl->m_vel_y = ((LK1Y + LK2Y) / (m1 + m2));
+					//orgkpl->m_mass = (m1 + m2);
+					kpl[i].m_active = false;
+				}
 		}
 	}
 }
 
-//Jos kappaleiden säteiden summa on pienempi kuin niiden välinen etäisyys on tapahtunut törmäys
+//Jos kappaleiden säteiden summa on suurempi kuin niiden välinen etäisyys on tapahtunut törmäys
 bool Gravitaatio::CheckCollision(Gravitaatio *kpl1, Gravitaatio *kpl2)
 {
-	if ((kpl1->m_rad + kpl2->m_rad) > Distance(kpl1, kpl2))
+	if ((kpl1->m_rad + kpl2->m_rad) >= Distance(kpl1, kpl2))
 	{
 		return true;
 	}

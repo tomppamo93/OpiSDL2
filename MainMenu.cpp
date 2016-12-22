@@ -51,6 +51,7 @@ int Universe_ThreadFunction(void* data)
 	while (!GameLoop::GetQuit()) 
 	{
 		Gravitaatio::Update((Gravitaatio*)data);
+		Gravitaatio::SetCalcCounter(Gravitaatio::GetCalcCounter()+1);
 		//SDL_Delay(1);
 	}
 	return 0;
@@ -70,11 +71,15 @@ int MainMenu::ButtonPressed()
 		case StartButton:			
 			kappale = Gravitaatio::CreateUniverse(OptionsMenu::GetKpl());
 
-			kappale[0].Init("Planeetta1", 1.0e13, 0.0, 0.0, 0.0, 0.0, 1.0);
-			kappale[1].Init("Pallo1", 1.0e11, 9.0, 0.0, 0.0, 11.61125878, 1.0);
-			kappale[2].Init("Pallo2", 5.0, 15.0, 0.0, 0.0, 5.61125878, 1.0);
-			kappale[3].Init("Pallo3", 5.0, -40.0, 0.0, 0.0, -2.5, 1.0);
-			kappale[4].Init("Pallo4", 5.0, -20.0, 0.0, 0.0, -2.5, 1.0);
+			kappale[0].Init("Sun", 1.98855e12, 0.0, 0.0, 0.0, 0.0, 1000.0);
+			kappale[1].Init("Pallo1", 1.98855e8, 2000.0, 0.0, 0.0, 0.3, 100.0);
+			kappale[2].Init("Pallo2", 1.98855e8, -2000.0, 0.0, 0.0, -0.3, 100.0);
+			//kappale[0].Init("Sun", 1.98855e30, 0.0, 0.0, 0.0, 0.0, 6.957e8);
+			//kappale[1].Init("Earth", 5.97237e24, 0.0, 152100000.0e3, 29.78e3, 0.0, 6371.0e3);
+			//kappale[2].Init("Moon", 7.342e22, 0.0, (362600e3+152100000.0e3), (29.78e3+1.022e3), 0.0, 1738.1e3);
+			//kappale[3].Init("Asteroid1", 5.0, -40.0, 0.0, 0.0, -2.5, 0.3);
+			//kappale[4].Init("Asteroid2", 5.0, -20.0, 0.0, 0.0, -2.5, 0.3);
+			//kappale[5].Init("Asteroid3", 5.0, -50.0, 0.0, 0.0, -1.5, 0.3);
 
 			SDLCore::SetThread(SDL_CreateThread(Universe_ThreadFunction, "UpdateUniverse", (void*)kappale));
 			Gravitaatio::RenderUniverse(kappale);
