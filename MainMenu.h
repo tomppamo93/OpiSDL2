@@ -25,5 +25,6 @@ private:
 	MenuButtons buttons[ButtonCount_main];
 	SDL_Texture *m_MainMenuBackgroundTexture;
 	Gravitaatio *kappale;
+	bool threadluotu = false;
 };
 

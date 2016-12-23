@@ -1,5 +1,5 @@
 #include "Gravitaatio.h"
-
+#include "MainMenu.h"
 
 double Gravitaatio::simtime  = 0.01;
 double Gravitaatio::gconst   = 6.67384e-11;
@@ -9,7 +9,9 @@ unsigned int Gravitaatio::calccounter = 0;
 SDL_Texture *Gravitaatio::m_SpaceBackgroundTexture = NULL;
 SDL_Texture *Gravitaatio::m_SimTimeText = NULL;
 SDL_Color   Gravitaatio::m_color = {0, 0, 0, 0};
-
+MenuButtons Gravitaatio::m_backbutton;
+bool Gravitaatio::ifinitback = true;
+bool Gravitaatio::m_stop = false;
 
 Gravitaatio::Gravitaatio()
 {
@@ -20,9 +22,11 @@ Gravitaatio::Gravitaatio()
 
 	m_planeetta = SDLCore::loadTexture(SDLCore::GetRespath() + "pallo.png", SDLCore::GetRenderer());
 
-	if (!m_SpaceBackgroundTexture)
+	if (ifinitback)
 	{
+		m_backbutton.SetButton("Back", 0, 1030, 150, 50, SDLCore::loadTexture(SDLCore::GetRespath() + "back.png", SDLCore::GetRenderer()), SDLCore::loadTexture(SDLCore::GetRespath() + "back_down.png", SDLCore::GetRenderer()));
 		m_SpaceBackgroundTexture = SDLCore::loadTexture(SDLCore::GetRespath() + "mainmenu_background.png", SDLCore::GetRenderer());
+		ifinitback = false;
 	}
 
 	m_color = { 255, 255, 255, 0 };
@@ -81,13 +85,10 @@ void Gravitaatio::VelX(Gravitaatio *orgkpl, Gravitaatio *kpl)
 
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (kpl[i].m_active == true)
-		{
-			if (orgkpl != &kpl[i])
+			if (orgkpl != &kpl[i] && kpl[i].m_active)
 			{
 				velx += ((cos(acos((orgkpl->m_pos_x - kpl[i].m_pos_x) / pow(Distance(orgkpl, &kpl[i]), 2))) * Acceleration(orgkpl, &kpl[i])) * simtime);
 			}
-		}
 	}
 	orgkpl->m_vel_x = velx;
 }
@@ -99,13 +100,10 @@ void Gravitaatio::VelY(Gravitaatio *orgkpl, Gravitaatio *kpl)
 
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (kpl[i].m_active == true)
-		{
-			if (orgkpl != &kpl[i])
+			if (orgkpl != &kpl[i] && kpl[i].m_active)
 			{
 				vely += ((sin(asin((orgkpl->m_pos_y - kpl[i].m_pos_y) / pow(Distance(orgkpl, &kpl[i]), 2))) * Acceleration(orgkpl, &kpl[i])) * simtime);
 			}
-		}
 	}
 	orgkpl->m_vel_y = vely;
 }
@@ -115,7 +113,7 @@ int Gravitaatio::Update(Gravitaatio *kpl)
 {
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (kpl[i].m_active == true)
+		if (kpl[i].m_active)
 		{
 			PosX(&kpl[i]);
 			PosY(&kpl[i]);
@@ -124,7 +122,7 @@ int Gravitaatio::Update(Gravitaatio *kpl)
 
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (kpl[i].m_active == true)
+		if (kpl[i].m_active)
 		{
 			VelX(&kpl[i], kpl);
 			VelY(&kpl[i], kpl);
@@ -133,7 +131,7 @@ int Gravitaatio::Update(Gravitaatio *kpl)
 
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (kpl[i].m_active == true)
+		if (kpl[i].m_active)
 		{
 			Collision(&kpl[i], kpl);
 		}
@@ -151,7 +149,7 @@ Gravitaatio *Gravitaatio::CreateUniverse(int kplmäärä2)
 
 int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 {
-	while (!GameLoop::GetQuit())
+	while (!GameLoop::GetQuit() && !m_stop)
 	{
 		while (SDL_PollEvent(SDLCore::GetEvent()))
 		{
@@ -159,15 +157,23 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 			{
 				if (SDLCore::GetEvent()->key.keysym.sym == SDLK_ESCAPE)
 				{
-					GameLoop::SetQuit(true);
+					MainMenu::CreateMainMenu();
+					m_stop = true;
+					break;
 				}
 			}
-		}	
+		}
+
+		if (m_stop)
+		{
+			break;
+		}
+
 		renderTexture(m_SpaceBackgroundTexture, SDLCore::GetRenderer(), 0, 0, 1920, 1080);
 		//Kappaleiden päälle renderöidään tekstiä
 		for (int i = 0; i < kplmäärä; i++)
 		{
-			if (kappale[i].m_active == true)
+			if (kappale[i].m_active)
 			{
 				kappale[i].m_text = renderText("Kappale: " + kappale[i].m_name, "C:\\Windows\\Fonts\\Arial.ttf", m_color, 12, SDLCore::GetRenderer());
 				renderTexture(kappale[i].m_text, SDLCore::GetRenderer(), (int)((kappale[i].m_pos_x * m_renderscale) + 920 - kappale[i].m_rad * m_renderscale), (int)((kappale[i].m_pos_y * m_renderscale) + 525 - kappale[i].m_rad * m_renderscale));
@@ -179,24 +185,25 @@ int Gravitaatio::RenderUniverse(Gravitaatio *kappale)
 		}	
 
 		//Renderöidään simulaation aika näytön reunaan
-		m_SimTimeText = renderText("Sim Time: " + to_string(simtime * calccounter), "C:\\Windows\\Fonts\\Arial.ttf", m_color, 24, SDLCore::GetRenderer());
+		m_SimTimeText = renderText("Sim Time[h]:: " + to_string(((int)(simtime * calccounter))/3600), "C:\\Windows\\Fonts\\Arial.ttf", m_color, 24, SDLCore::GetRenderer());
 		renderTexture(m_SimTimeText, SDLCore::GetRenderer(), 0, 0);
 		SDL_DestroyTexture(m_SimTimeText);
 		m_SimTimeText = renderText("Calculations: " + to_string(calccounter), "C:\\Windows\\Fonts\\Arial.ttf", m_color, 24, SDLCore::GetRenderer());
 		renderTexture(m_SimTimeText, SDLCore::GetRenderer(), 0, 24);
 		SDL_DestroyTexture(m_SimTimeText);
+		renderTexture(m_backbutton.GetTexture(), SDLCore::GetRenderer(), m_backbutton.GetPosX(), m_backbutton.GetPosY());
 
 		//Renderöidään kappaleet
 		for (int i = 0; i < kplmäärä; i++)
 		{
-			if (kappale[i].m_active == true)
+			if (kappale[i].m_active)
 			{
 				renderTexture(kappale[i].m_planeetta, SDLCore::GetRenderer(), (int)((kappale[i].m_pos_x * m_renderscale) + 960 - kappale[i].m_rad * m_renderscale), (int)((kappale[i].m_pos_y * m_renderscale) + 540 - kappale[i].m_rad * m_renderscale), (int)(kappale[i].m_rad * 2.0 * m_renderscale), (int)(kappale[i].m_rad * 2.0 * m_renderscale));
 			}
 		}
 		
 		SDL_RenderPresent(SDLCore::GetRenderer());
-		SDL_Delay(25);
+		SDL_Delay(20);
 	}
 	return 0;
 }
@@ -206,21 +213,13 @@ void Gravitaatio::Collision(Gravitaatio *orgkpl, Gravitaatio *kpl)
 {
 	for (int i = 0; i < kplmäärä; i++)
 	{
-		if (orgkpl != &kpl[i] && kpl[i].m_active == true)
+		if (orgkpl != &kpl[i] && kpl[i].m_active && CheckCollision(orgkpl, &kpl[i]))
 		{
-				if (CheckCollision(orgkpl, &kpl[i]))
-				{
 					double m1 = orgkpl->m_mass, m2 = kpl[i].m_mass;
 					orgkpl->m_vel_x = ((m1 / (m1 + m2))*(orgkpl->m_vel_x - kpl[i].m_vel_x));
 					orgkpl->m_vel_y = ((m1 / (m1 + m2))*(orgkpl->m_vel_y - kpl[i].m_vel_y));
 					orgkpl->m_mass = (m1 + m2);
-					//double LK2X = (m2 * (kpl[i].m_vel_x - orgkpl->m_vel_x)), LK1X = (m1 * (orgkpl->m_vel_x - kpl[i].m_vel_x));
-					//double LK2Y = (m2 * (kpl[i].m_vel_y - orgkpl->m_vel_y)), LK1Y = (m1 * (orgkpl->m_vel_y - kpl[i].m_vel_y));
-					//orgkpl->m_vel_x = ((LK1X + LK2X) / (m1 + m2));
-					//orgkpl->m_vel_y = ((LK1Y + LK2Y) / (m1 + m2));
-					//orgkpl->m_mass = (m1 + m2);
 					kpl[i].m_active = false;
-				}
 		}
 	}
 }

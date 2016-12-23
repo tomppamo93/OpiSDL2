@@ -19,6 +19,7 @@ MainMenu::MainMenu()
 		buttons[i].SetButton(name[i], posx, posy, (150), (50), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + ".png", SDLCore::GetRenderer()), SDLCore::loadTexture(SDLCore::GetRespath() + name[i] + "_down.png", SDLCore::GetRenderer()));
 	}
 	MainMenu::m_MainMenuBackgroundTexture = SDLCore::loadTexture(SDLCore::GetRespath() + "mainmenu_background.png", SDLCore::GetRenderer());
+	kappale = NULL;
 }
 
 
@@ -48,10 +49,15 @@ int MainMenu::CreateMainMenu()
 // Loop Thread
 int Universe_ThreadFunction(void* data)
 {
-	while (!GameLoop::GetQuit()) 
+	while (!GameLoop::GetQuit())
 	{
 		Gravitaatio::Update((Gravitaatio*)data);
 		Gravitaatio::SetCalcCounter(Gravitaatio::GetCalcCounter()+1);
+
+		while (!GameLoop::GetQuit() && Gravitaatio::GetStop())
+		{
+			SDL_Delay(100);
+		}
 		//SDL_Delay(1);
 	}
 	return 0;
@@ -68,12 +74,18 @@ int MainMenu::ButtonPressed()
 	{
 		switch (Mainmenu->m_ButtonIndex)
 		{
-		case StartButton:			
-			kappale = Gravitaatio::CreateUniverse(OptionsMenu::GetKpl());
+		case StartButton:	
+			Gravitaatio::SetStop(false);
 
-			kappale[0].Init("Sun", 1.98855e12, 0.0, 0.0, 0.0, 0.0, 1000.0);
-			kappale[1].Init("Pallo1", 1.98855e8, 2000.0, 0.0, 0.0, 0.3, 100.0);
-			kappale[2].Init("Pallo2", 1.98855e8, -2000.0, 0.0, 0.0, -0.3, 100.0);
+			if (kappale == NULL)
+			{
+				kappale = Gravitaatio::CreateUniverse(OptionsMenu::GetKpl());
+
+				kappale[0].Init("Sun", 1.98855e12, 0.0, 0.0, 0.0, 0.0, 1000.0);
+				kappale[1].Init("Pallo1", 1.98855e8, 2000.0, 0.0, 0.0, 0.25, 100.0);
+				kappale[2].Init("Pallo2", 1.98855e8, -2000.0, 0.0, 0.0, -0.35, 100.0);
+			}
+			
 			//kappale[0].Init("Sun", 1.98855e30, 0.0, 0.0, 0.0, 0.0, 6.957e8);
 			//kappale[1].Init("Earth", 5.97237e24, 0.0, 152100000.0e3, 29.78e3, 0.0, 6371.0e3);
 			//kappale[2].Init("Moon", 7.342e22, 0.0, (362600e3+152100000.0e3), (29.78e3+1.022e3), 0.0, 1738.1e3);
@@ -81,7 +93,12 @@ int MainMenu::ButtonPressed()
 			//kappale[4].Init("Asteroid2", 5.0, -20.0, 0.0, 0.0, -2.5, 0.3);
 			//kappale[5].Init("Asteroid3", 5.0, -50.0, 0.0, 0.0, -1.5, 0.3);
 
-			SDLCore::SetThread(SDL_CreateThread(Universe_ThreadFunction, "UpdateUniverse", (void*)kappale));
+			if (!threadluotu)
+			{
+				SDLCore::SetThread(SDL_CreateThread(Universe_ThreadFunction, "UpdateUniverse", (void*)kappale));
+				threadluotu = true;
+			}
+
 			Gravitaatio::RenderUniverse(kappale);
 			break;
 		case OptionsButton:
